@@ -1,3 +1,5 @@
+Be sure to edit fabfile.py to set 'project' and 'domain'
+
 the url /anything will try to render the website/templates/anything.html
 
 Edit website/urls.py to connect urls to different templates in website/templates
