@@ -77,7 +77,7 @@ def rollback():
     with cd('%(path)s/django/%(project_name)s' % env): 
         run('git reset --hard ORIG_HEAD')
     # reload python files
-    run('touch %(path)s/django/django.wsgi')
+    run('touch %(path)s/django/django.wsgi' % env)
 
 def disable():
     """
@@ -87,7 +87,7 @@ def disable():
     run("apache2ctl configtest" % env)
     sudo("apache2ctl graceful" % env)
 
-def deploy():
+def update():
     require('project_name')
     require('domain')
     
@@ -95,7 +95,7 @@ def deploy():
     with cd('%(path)s/django/%(project_name)s' % env): 
         run('git pull' % env)
     # reload python files
-    run('touch %(path)s/django/django.wsgi')
+    run('touch %(path)s/django/django.wsgi' % env)
 
 apache_conf = """
 <VirtualHost *:80>
