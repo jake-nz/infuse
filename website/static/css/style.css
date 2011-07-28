@@ -1,0 +1,115 @@
+body{ background:#999;}
+
+#page{ width:1000px; margin:0 auto; background:#fff; }
+
+header{  }
+
+nav{ background:#ddd; border-top:1px solid #000; border-bottom:1px solid #000; }
+nav a{ display:inline-block; height:28px; padding:4px 15px; text-decoration:none; font-size:18px; color:#000; }
+nav a:hover{ background-color:#ccc; }
+nav a:active, nav a.current{ background-color:#eee; }
+nav a:visited{ color:#000; }
+
+#breadcrumbs{ padding:10px 15px; }
+/* put an icon between links */
+#breadcrumbs a[href]:after{content:"\20"; width:16px; height: 16px; margin-right:2px; background-image: url(icons/icons.png); display: inline-block; vertical-align: text-bottom; background-position: -32px -48px;}
+
+
+/* content styles
+----------------------------------------------------------------------------------------------------*/
+a{color:#006;}
+a:visited{color:#339;}
+/* put an icon after enternal links */
+a[href^=http]:after{content:"\20"; width:16px; height: 16px; margin-right:4px; background-image: url(icons/icons.png); display: inline-block; vertical-align: text-bottom; background-position: -32px -80px;}
+.compact p{margin:.5em;}
+.center{ text-align:center; }
+.right{float:right; margin-left:15px;}
+.left{float:left; margin-right:15px;}
+.aside{font-size:.9em; color:#666;}
+
+hr{ border-color:#666; margin: 40px 0 20px; clear: both; float: left; width: 100%; }
+
+article{ background:#f3f3f3; border-top:1px solid #000;}
+h3{ font-size:14px; margin-bottom: 0; }
+h4{ font-size:13px; margin-bottom: 0; }
+dt{ font-weight:bold; }
+dd{ margin-left:15px; }
+blockquote { border-left:6px solid #ccc; margin:1.5em 10px; padding:.5em 10px; quotes:"\201C""\201D""\2018""\2019"; font-style: italic; }
+blockquote:before { color:#666; content:open-quote; font-size:4em; line-height:.1em; margin-right:.25em; vertical-align:-.4em; }
+ul ul, ul ol, ol ul, ol ol{
+    margin-left:20px; margin-bottom:0;
+}
+    
+table{ width:100%; }
+td{ padding:1px 10px; }
+tr{ border-bottom:1px solid #ccc; }
+th{ font-weight:bold; border-bottom:1px solid #666; text-align:left; }
+
+footer{ margin:40px; border-top:1px solid #000; text-align:center; min-height:40px; padding:0 20px 20px; }
+
+#contact-form label{ width:30%; float:left; }
+#contact-form input, #contact-form textarea{ width:65%; border:1px solid #ccc; float:right; }
+#contact-form p{float:left; clear:both; margin-bottom:6px; width:100%; }
+/* validation */
+#contact-form input.error, #contact-form textarea.error{ border:1px solid #900; }
+#contact-form label.error{ color: #900; width:100%; text-align:right; }
+/* sending */
+#contact-form .message{ display:none; background:#ccc; padding:3%; margin:0 7%; width:80%;}
+#contact-form.sending #send-button, #contact-form.sent #send-button{ display:none; }
+#contact-form.sending .sending{ display:inherit; }
+#contact-form.sent .sent{ display:inherit; }
+#contact-form.error .error{ display:inherit; }
+
+/* cut down jQ UI */
+.ui-state-active{background-color:#eee;}
+.ui-state-hover{background-color:#fff;}
+.ui-state-default{background-color:#ddd;}
+
+.ui-tabs-hide{display:none;}
+.ui-tabs-nav{padding-left:0; margin-bottom:0;}
+.ui-tabs-nav li{display:inline-block; border:1px solid #333; padding:5px; background-color:#ddd;}
+.ui-tabs-panel{border:1px solid #333; margin-top:-1px; background-color:#eee;}
+
+.ui-accordion-header{ border:1px solid #333; padding:5px; }
+.ui-accordion-content{border:1px solid #333; margin-top:-1px; background-color:#eee;}
+
+
+
+
+/* =============================================================================
+   PLACEHOLDER Media Queries for Responsive Design.
+   These override the primary ('mobile first') styles
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 480px) {
+  /* Style adjustments for viewports 480px and over go here */
+
+}
+
+@media only screen and (min-width: 768px) {
+  /* Style adjustments for viewports 768px and over go here */
+
+}
+
+
+
+/* =============================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: www.phpied.com/delay-loading-your-print-css/
+   ========================================================================== */
+ 
+@media print {
+  * { background: transparent !important; color: black !important; text-shadow: none !important; filter:none !important; -ms-filter: none !important; } /* Black prints faster: sanbeiji.com/archives/953 */
+  a, a:visited { text-decoration: underline; }
+  a[href]:after { content: " (" attr(href) ")"; }
+  abbr[title]:after { content: " (" attr(title) ")"; }
+  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
+  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+  thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */
+  tr, img { page-break-inside: avoid; }
+  img { max-width: 100% !important; }
+  @page { margin: 0.5cm; }
+  p, h2, h3 { orphans: 3; widows: 3; }
+  h2, h3 { page-break-after: avoid; }
+}

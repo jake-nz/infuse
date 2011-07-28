@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Gallery{% endblock %}
+
+{% block content %}
+    <div id="breadcrumbs">
+        <a href="/">Home</a><a href="/sub">Sub</a><a>Here</a>
+    </div>
+
+    <h1>Gallery</h1>
+
+    <article class="grid_3">
+        <h2>Kitten!</h2>
+        <a class="fancybox" rel="kitten_group" href="{{ STATIC_URL }}images/kitten.jpg"><img src="http://placekitten.com/g/220/160"></a>
+    </article>
+    <article class="grid_3">
+        <h2>Kitten!</h2>
+        <a class="fancybox" rel="kitten_group" href="{{ STATIC_URL }}images/kitten.jpg"><img src="http://placekitten.com/g/220/160"></a>
+    </article>
+    <article class="grid_3">
+        <h2>Kitten!</h2>
+        <a class="fancybox" rel="kitten_group" href="{{ STATIC_URL }}images/kitten.jpg"><img src="http://placekitten.com/g/220/160"></a>
+    </article>
+    <article class="grid_3">
+        <h2>Kitten!</h2>
+        <a class="fancybox" rel="kitten_group" href="{{ STATIC_URL }}images/kitten.jpg"><img src="http://placekitten.com/g/220/160"></a>
+    </article>
+
+    <article class="grid_3">
+        <h2>Not Kitten :(</h2>
+        <a class="fancybox" rel="grey_group" href="{{ STATIC_URL }}images/kitten.jpg"><img src="http://placehold.it/220x160"></a>
+    </article>
+    <article class="grid_3">
+        <h2>Not Kitten :(</h2>
+        <a class="fancybox" rel="grey_group" href="{{ STATIC_URL }}images/kitten.jpg"><img src="http://placehold.it/220x160"></a>
+    </article>
+    <article class="grid_3">
+        <h2>Not Kitten :(</h2>
+        <a class="fancybox" rel="grey_group" href="{{ STATIC_URL }}images/kitten.jpg"><img src="http://placehold.it/220x160"></a>
+    </article>
+    <article class="grid_3">
+        <h2>Not Kitten :(</h2>
+        <a class="fancybox" rel="grey_group" href="{{ STATIC_URL }}images/kitten.jpg"><img src="http://placehold.it/220x160"></a>
+    </article>
+
+{% endblock %}
+
+{% block js %}{% include "includes/fancybox.html" %}{% endblock %}

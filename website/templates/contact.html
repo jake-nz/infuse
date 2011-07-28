@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+    <div id="breadcrumbs">
+        <a href="/">Home</a><a href="/sub">Sub</a><a>Here</a>
+    </div>
+
+    <h1>Contact Us</h1>
+
+    <div class="grid_4">
+        <article>
+            <h2>Contact Details</h2>
+            
+            <dl>
+                <dt>Phone</dt>
+                <dd>0800 awesome</dd>
+                <dt>Email</dt>
+                <dd>awesome@awreso.me</dd>
+            </dl>
+        </article>
+
+        <article class="clearfix">
+            <h2>Form</h2>
+            
+            <form action="http://admin.infusecreative.co.nz/mail_forms/send/" method="get" id="contact-form">
+                <input type="hidden" value="PutKeyHere" name="key">
+                <p>Generate a key at <a href="http://admin.infusecreative.co.nz/admin/mail/key/add/">admin.infusecreative.co.nz/admin/mail/key/add/</a>
+                <p>
+                    <label for="name">Name </label>
+                    <input type="text" name="name" class="required">
+                </p> 
+                <p>
+                    <label for="email">Email </label>
+                    <input type="text" name="email" class="required email">
+                </p> 
+                <p>
+                    <label for="subject">Subject </label>
+                    <input type="text" name="subject" class="required">
+                </p> 
+                <p>
+                    <label for="somename">Custom field </label>
+                    <input type="text" name="somename">
+                </p> 
+                <p>
+                    <label for="message">Message </label>
+                    <textarea name="message" class="required"></textarea>
+                </p> 
+                <p id="send-button"><input type="submit" value="Send"></p>
+                <p class="sending message">Sending...</p>
+                <p class="sent message"><span class="icon icon-check"></span> Your message has been sent, we'll contact you as soon.</p>
+                <p class="error message"><span class="icon red icon-alert "></span> Sorry, there was an error sending your message! Please try again or send us an email.</p>
+            </form>
+            <hr class="clear">
+        </article>
+    </div>
+
+
+    <article class="grid_8">
+        <h2>Map</h2>
+        <!-- <iframe class="grid_8 alpha omega" gives width - remove width param -->
+        <iframe class="grid_8 alpha omega" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.co.nz/?ie=UTF8&amp;hq=&amp;hnear=Hamilton,+Waikato&amp;ll=-37.79561,175.273658&amp;spn=0.005816,0.011362&amp;t=h&amp;z=17&amp;output=embed"></iframe>
+        <br /><small><a href="http://maps.google.co.nz/?ie=UTF8&amp;hq=&amp;hnear=Hamilton,+Waikato&amp;ll=-37.79561,175.273658&amp;spn=0.005816,0.011362&amp;t=h&amp;z=17&amp;source=embed" style="color:#0000FF;text-align:left">View Larger Map</a></small>
+    </article>
+{% endblock %}
+
+{% block js %}
+    <script src="{{ STATIC_URL }}js/jquery.validate.min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery.form.js"></script>
+    <script>
+    $(function(){
+        $("#contact-form").validate({
+            submitHandler: function(form){
+                $form=$(form);
+                $form.ajaxSubmit({
+                    success:function(response){
+                        $form.removeClass('sending');
+                        if(response.success){
+                            $form.addClass('sent');
+                        }else{
+                            $form.addClass('error');
+                        }
+                    },
+                    dataType:"jsonp"
+                });
+                $form.addClass('sending').removeClass('error');
+            }
+        });
+    });
+    </script>
+{% endblock %}
