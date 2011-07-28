@@ -1,4 +1,5 @@
 from fabric.api import *
+from StringIO import StringIO
 
 # globals
 env.project_name = 'template'
@@ -7,18 +8,19 @@ env.domain = 'template.co.nz'
 # environments
 def production():
     env.hosts = ['clients.infusecreative.co.nz']
-    env.path = 'var/www/'+env.domain
-    env.user = 'deploy'
+    env.path = '/var/www/'+env.domain
+    env.user = 'ubuntu'
     env.git_branch = env.project_name
-    env.apache_conf = apache_conf % env
-    env.wsgi_conf = wsgi_conf % env
+    env.apache_conf = apache_conf
+    env.wsgi_conf = wsgi_conf
 
 def dev():
     production()
-    env.domain = 'dev.'+env.domain
-    env.path += '/dev'
-    env.apache_conf = apache_conf % env
-    env.wsgi_conf = wsgi_conf % env
+    env.subdomain = 'dev'
+    env.domain = env.subdomain+'.'+env.domain
+    env.path += '/' + env.subdomain
+    env.apache_conf = apache_conf
+    env.wsgi_conf = wsgi_conf
 
 environments = [production, dev]
 
@@ -37,11 +39,13 @@ def setup():
     require('domain')
     
     # mkdirs
-    run('mkdir -p %(path)s/{httpdocs,subdomains,log,django/%(project_name)s,virtualenv};' % env)
+    sudo('mkdir -m 755 -p %(path)s' % env)
+    sudo('chown ubuntu:ubuntu %(path)s' % env)
+    run('mkdir -m 755 -p %(path)s/{httpdocs,subdomains,log,django/%(project_name)s,virtualenv}' % env)
     # get code
     run('git clone --depth 1 --branch %(git_branch)s git://github.com/jakecr/infuse.git %(path)s/django/%(project_name)s' % env)
     # create virtualenv
-    run('cd %(path)s/virtualenv; virtualenv --no-site-packages .' % env)
+    run('virtualenv --no-site-packages %(path)s/virtualenv' % env)
 
     install_requirements()
     configure()
@@ -59,37 +63,56 @@ def configure():
     """
     Create config files
     """
-    sudo('echo "%(apache_conf)s" > /etc/apache2/sites-available/%(domain)s' % env)
-    sudo('echo "%(wsgi_conf)s" > %(path)s/django/django.wsgi' % env)
+    put(StringIO(env.apache_conf.format(**env)), '/etc/apache2/sites-available/%(domain)s' % env, use_sudo=True)
+    put(StringIO(env.wsgi_conf.format(**env)), '%(path)s/django/django.wsgi' % env)
     sudo("a2ensite %(domain)s" % env)
-    sudo("a2ensite %(domain)s" % env)
-    sudo("a2ensite %(domain)s" % env)
+    run("apache2ctl configtest" % env)
+    sudo("apache2ctl graceful" % env)
+
+def rollback():
+    require('project_name')
+    require('domain')
+    
+    # update code
+    with cd('%(path)s/django/%(project_name)s' % env): 
+        run('git reset --hard ORIG_HEAD')
+    # reload python files
+    run('touch %(path)s/django/django.wsgi')
+
+def disable():
+    """
+    Create config files
+    """
+    sudo("a2dissite %(domain)s" % env)
+    run("apache2ctl configtest" % env)
+    sudo("apache2ctl graceful" % env)
 
 def deploy():
     require('project_name')
     require('domain')
     
     # update code
-    run('cd %(path)s/django/%(project_name)s; git pull' % env)
+    with cd('%(path)s/django/%(project_name)s' % env): 
+        run('git pull' % env)
     # reload python files
     run('touch %(path)s/django/django.wsgi')
 
 apache_conf = """
 <VirtualHost *:80>
         # remove www
-        ServerName www.%(domain)s
-        RedirectPermanent / http://%(domain)s
+        ServerName www.{domain}
+        RedirectPermanent / http://{domain}
 </VirtualHost>
 
 <VirtualHost *:80>
-        ServerName %(domain)s
+        ServerName {domain}
 
-        Alias /static %(path)s/django/%(project_name)s/static/
-        Alias /favicon.ico %(path)s/django/%(project_name)s/static/favicon.ico
-        WSGIScriptAlias / %(path)s/django/django.wsgi
+        Alias /static {path}/django/{project_name}/static/
+        Alias /favicon.ico {path}/django/{project_name}/static/favicon.ico
+        WSGIScriptAlias / {path}/django/django.wsgi
 
-        DocumentRoot /var/www/%(domain)s/httpdocs
-        <Directory /var/www/%(domain)s/httpdocs/>
+        DocumentRoot {path}/httpdocs
+        <Directory {path}/httpdocs/>
                 Options -Indexes -MultiViews
                 Options FollowSymLinks
                 AllowOverride Options
@@ -97,9 +120,10 @@ apache_conf = """
                 allow from all
         </Directory>
 
-        ErrorLog /var/www/%(domain)s/log/error.log
+        ErrorLog {path}/log/error.log
         LogLevel warn
-        CustomLog /var/www/%(domain)s/log/access.log "%{%d:%m:%Y %H:%M:%S}t %h %m:http://%{Host}i%U%q %>s %b \"%{User-Agent}i\""
+
+        CustomLog {path}/log/access.log "%{{%d:%m:%Y %H:%M:%S}}t %h %m:http://%{{Host}}i%U%q %>s %b \\"%{{User-Agent}}i\\""
 
         # custom 404 page
         #ErrorDocument 404 /404.html
@@ -125,7 +149,7 @@ import os, sys
 # put the Django project on sys.path
 sys.path.insert(0, (os.path.abspath(os.path.dirname(__file__))))
 
-os.environ['DJANGO_SETTINGS_MODULE'] = '%(project_name)s.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = '{project_name}.settings'
 #os.environ['PYTHON_EGG_CACHE'] = '/usr/lib/python2.4/eggcache'
 from django.core.handlers.wsgi import WSGIHandler
 application = WSGIHandler()
