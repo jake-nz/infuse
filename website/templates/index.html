@@ -2,12 +2,8 @@
 
 {% block css %}
     <style>
+        /* css to override defaults for home only */
         #css .to{ override:defaults; for:home-only; }
-
-        .rounded{ -webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px; }
-        .box-shadow{ -moz-box-shadow: 10px 10px 5px #888; -webkit-box-shadow: 10px 10px 5px #888; box-shadow: 10px 10px 5px #888; }
-        .text-shadow{ text-shadow: 2px 2px 2px #000; }
-
     </style>
     <!-- <link rel="stylesheet" href="{{ STATIC_URL }}css/extra.css" /> -->
 {% endblock %}
