@@ -1,103 +1,141 @@
 from fabric.api import *
+from fabric.colors import red
+from fabric.tasks import WrappedCallableTask
 from StringIO import StringIO
 
-# globals
-env.project_name = 'template'
+env.project = 'template'
 env.domain = 'template.co.nz'
+env.aliases = ['template.infusecreative.co.nz'] # eg ['other.co.nz', 'template.com']
+env.hosts = ['clients.infusecreative.co.nz']
+env.path = '/var/www/'+env.domain
+env.user = 'ubuntu'
+env.git_branch = env.project
+# these 2 vars are big so set at end
+# env.apache_conf
+# env.wsgi_conf
 
-# environments
-def production():
-    env.hosts = ['clients.infusecreative.co.nz']
-    env.path = '/var/www/'+env.domain
-    env.user = 'ubuntu'
-    env.git_branch = env.project_name
-    env.apache_conf = apache_conf
-    env.wsgi_conf = wsgi_conf
+class SubdomainTask(WrappedCallableTask):
 
-def dev():
-    production()
-    env.subdomain = 'dev'
-    env.domain = env.subdomain+'.'+env.domain
-    env.path += '/' + env.subdomain
-    env.apache_conf = apache_conf
-    env.wsgi_conf = wsgi_conf
+    def run(self, *args, **kwargs):
 
-environments = [production, dev]
+        require('project')
+        require('domain')
+        require('path')
+
+        #if env.project == 'template' or env.domain == 'template.co.nz':
+        #    print(red("You must set") + " project " + red("and") + " domain " + red("by editing fabfile.py!"))
+        #    return
+
+        if len(args):
+            env.subdomain = args[0]
+            env.domain = env.subdomain+'.'+env.domain
+            env.path = env.path+'/subdomains/'+env.subdomain
+            args = args[1:]
+        else:
+            env.subdomain = ''
+        return self.wrapped(*args, **kwargs)
 
 # tasks
 #########
 
+@task(task_class=SubdomainTask)
 def test():
-    "Run the test suite and bail out if it fails"
+    """
+    Run the local test suite
+    """
     local("python manage.py test", fail="abort")
 
+@task(task_class=SubdomainTask, alias="init")
 def setup():
     """
+    Run once to setup the site on the server.
     Setup directories, a fresh virtualenv, configuration, get code from github
     """
-    require('project_name')
-    require('domain')
     
     # mkdirs
     sudo('mkdir -m 755 -p %(path)s' % env)
     sudo('chown ubuntu:ubuntu %(path)s' % env)
-    run('mkdir -m 755 -p %(path)s/{httpdocs,subdomains,log,django/%(project_name)s,virtualenv}' % env)
+    run('mkdir -m 755 -p %(path)s/{httpdocs,log,django/%(project)s,virtualenv}' % env)
     # get code
-    run('git clone --depth 1 --branch %(git_branch)s git://github.com/jakecr/infuse.git %(path)s/django/%(project_name)s' % env)
+    run('git clone --depth 1 --branch %(git_branch)s git://github.com/jakecr/infuse.git %(path)s/django/%(project)s' % env)
     # create virtualenv
     run('virtualenv --no-site-packages %(path)s/virtualenv' % env)
 
     install_requirements()
     configure()
 
+@task(task_class=SubdomainTask)
 def install_requirements():
     """
-    install requirements
+    Install requirements
     """
-    require('project_name')
-    require('domain')
-    
-    run('pip install -E %(path)s/virtualenv -r %(path)s/django/%(project_name)s/requirements.txt' % env)
+        
+    run('pip install -E %(path)s/virtualenv -r %(path)s/django/%(project)s/requirements.txt' % env)
 
+@task(task_class=SubdomainTask)
 def configure():
     """
-    Create config files
+    Create/update config files
     """
+
     put(StringIO(env.apache_conf.format(**env)), '/etc/apache2/sites-available/%(domain)s' % env, use_sudo=True)
     put(StringIO(env.wsgi_conf.format(**env)), '%(path)s/django/django.wsgi' % env)
-    sudo("a2ensite %(domain)s" % env)
-    run("apache2ctl configtest" % env)
-    sudo("apache2ctl graceful" % env)
+    enable()
 
+@task(task_class=SubdomainTask)
 def rollback():
-    require('project_name')
-    require('domain')
+    """
+    Undo results of most recent update
+    """
     
     # update code
-    with cd('%(path)s/django/%(project_name)s' % env): 
+    with cd('%(path)s/django/%(project)s' % env): 
         run('git reset --hard ORIG_HEAD')
     # reload python files
     run('touch %(path)s/django/django.wsgi' % env)
 
+@task(task_class=SubdomainTask)
 def disable():
     """
-    Create config files
+    Take the site down
     """
+
     sudo("a2dissite %(domain)s" % env)
     run("apache2ctl configtest" % env)
     sudo("apache2ctl graceful" % env)
 
+@task(task_class=SubdomainTask)
+def enable():
+    """
+    Re-enable a site that has been disabled
+    """
+
+    sudo("a2ensite %(domain)s" % env)
+    run("apache2ctl configtest" % env)
+    sudo("apache2ctl graceful" % env)
+
+@task(task_class=SubdomainTask)
 def update():
-    require('project_name')
-    require('domain')
+    """
+    get the latest version of the site from github
+    """
     
     # update code
-    with cd('%(path)s/django/%(project_name)s' % env): 
+    with cd('%(path)s/django/%(project)s' % env): 
         run('git pull' % env)
     # reload python files
     run('touch %(path)s/django/django.wsgi' % env)
 
-apache_conf = """
+@task(task_class=SubdomainTask)
+def show_logs():
+    """
+    Show the last few lines of logs
+    """
+    
+    run('tail %(path)s/log/error.log' % env)
+    run('tail %(path)s/log/access.log' % env)
+
+env.apache_conf = """
 <VirtualHost *:80>
         # remove www
         ServerName www.{domain}
@@ -106,9 +144,13 @@ apache_conf = """
 
 <VirtualHost *:80>
         ServerName {domain}
+        ServerAlias template.infusecreative.co.nz
 
-        Alias /static {path}/django/{project_name}/static/
-        Alias /favicon.ico {path}/django/{project_name}/static/favicon.ico
+        Alias /static {path}/django/{project}/website/static/
+        Alias /favicon.ico {path}/django/{project}/static/favicon.ico
+
+        WSGIDaemonProcess {project}{subdomain} python-path={path}/virtualenv/lib/python2.6/site-packages
+        WSGIProcessGroup {project}{subdomain}
         WSGIScriptAlias / {path}/django/django.wsgi
 
         DocumentRoot {path}/httpdocs
@@ -143,13 +185,13 @@ apache_conf = """
 </VirtualHost>
 """
 
-wsgi_conf = """
+env.wsgi_conf = """
 import os, sys
 
 # put the Django project on sys.path
 sys.path.insert(0, (os.path.abspath(os.path.dirname(__file__))))
 
-os.environ['DJANGO_SETTINGS_MODULE'] = '{project_name}.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = '{project}.settings'
 #os.environ['PYTHON_EGG_CACHE'] = '/usr/lib/python2.4/eggcache'
 from django.core.handlers.wsgi import WSGIHandler
 application = WSGIHandler()
