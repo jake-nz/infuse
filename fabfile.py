@@ -3,13 +3,18 @@ from fabric.colors import red
 from fabric.tasks import WrappedCallableTask
 from StringIO import StringIO
 
+# Edit these three
 env.project = 'template'
 env.domain = 'template.co.nz'
-env.aliases = ['template.infusecreative.co.nz'] # eg ['other.co.nz', 'template.com']
+env.redirects = [] # optional. eg ['other.co.nz', 'template.com']
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+env.aliases = []
 env.hosts = ['clients.infusecreative.co.nz']
 env.path = '/var/www/'+env.domain
 env.user = 'ubuntu'
-env.git_branch = env.project
+env.git_branch = env.domain
 # these 2 vars are big so set at end
 # env.apache_conf
 # env.wsgi_conf
@@ -22,9 +27,9 @@ class SubdomainTask(WrappedCallableTask):
         require('domain')
         require('path')
 
-        #if env.project == 'template' or env.domain == 'template.co.nz':
-        #    print(red("You must set") + " project " + red("and") + " domain " + red("by editing fabfile.py!"))
-        #    return
+        if env.project == 'template' or env.domain == 'template.co.nz':
+            print(red("You must set") + " project " + red("and") + " domain " + red("by editing fabfile.py!"))
+            return
 
         if len(args):
             env.subdomain = args[0]
@@ -77,8 +82,12 @@ def configure():
     """
     Create/update config files
     """
-
-    put(StringIO(env.apache_conf.format(**env)), '/etc/apache2/sites-available/%(domain)s' % env, use_sudo=True)
+    apache_conf = env.apache_conf.format(
+        redirect_conf=server_alias(env.redirects),
+        alias_conf=server_alias(env.aliases),
+        **env
+    )
+    put(StringIO(apache_conf), '/etc/apache2/sites-available/%(domain)s' % env, use_sudo=True)
     put(StringIO(env.wsgi_conf.format(**env)), '%(path)s/django/django.wsgi' % env)
     enable()
 
@@ -135,16 +144,21 @@ def show_logs():
     run('tail %(path)s/log/error.log' % env)
     run('tail %(path)s/log/access.log' % env)
 
+def server_alias(aliases):
+    return """
+        """.join(["ServerAlias "+alias for alias in aliases])
+
 env.apache_conf = """
 <VirtualHost *:80>
         # remove www
         ServerName www.{domain}
+        {redirect_conf}
         RedirectPermanent / http://{domain}
 </VirtualHost>
 
 <VirtualHost *:80>
         ServerName {domain}
-        ServerAlias template.infusecreative.co.nz
+        {alias_conf}
 
         Alias /static {path}/django/{project}/website/static/
         Alias /favicon.ico {path}/django/{project}/static/favicon.ico
