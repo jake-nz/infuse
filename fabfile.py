@@ -4,8 +4,8 @@ from fabric.tasks import WrappedCallableTask
 from StringIO import StringIO
 
 # Edit these three
-env.project = 'template'
-env.domain = 'template.co.nz'
+env.project = 'counsellingworx'
+env.domain = 'counsellingworx.co.nz'
 env.redirects = [] # optional. eg ['other.co.nz', 'template.com']
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

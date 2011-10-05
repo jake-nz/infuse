@@ -11,35 +11,44 @@
     {% block css %}{% endblock %}
 
     <script src="{{ STATIC_URL }}js/modernizr.custom.58743.js"></script>
+
 </head>
 
-<body>
-    <div id="page">
-        <header>
-            <a href="/"><h1><img src="http://placehold.it/1000x160&text=Header"></h1></a>
-        </header>
-        <nav>
-            <a href="/"{% if not params.path %}class="current"{% endif %}>Home</a>
-            <a href="/gallery"{% if params.path == "gallery" %}class="current"{% endif %}>Gallery</a>
-            <a href="/contact"{% if params.path == "contact" %}class="current"{% endif %}>Contact Us</a>
-            <a href="/styles"{% if params.path == "styles" %}class="current"{% endif %}>Styles</a>
-            <a href="/jquery"{% if params.path == "jquery" %}class="current"{% endif %}>Jquery Plugins</a>
+<body> 
+<header id="home">
+            <div id="logo"><a href="/"><h1><img src="static/images/counsellingworxlogo.png"></h1></a></div>
+        </header> 
+        
+        <div id="navbar"> <nav>
+            <a href="#home">Home</a>
+            <a href="#mission-statement">Mission Statement</a>
+            <a href="#types-of-counselling">Types of Counselling</a>
+            <a href="#about-our-counsellors">About our Counsellors</a>
+            <a href="#ways-of-funding">Ways of Funding</a>
+            <a href="#contact">Contact Us</a>
         </nav>
+        <div id="gt"></div>
+        </div>
+    <div id="page">
+      
 
         <div id="container" class="container_12" role="main">
         {% block content %}
         {% endblock %}
         </div>
 
-        <footer>
-             <p>Footer</p>
-        </footer>
+        
     </div>
-
+    <div id="foot"><div id="gb"></div>
+<footer>
+             <p><img src="static/images/counsellingworxlogosmall.png"></p>
+        </footer>
+        </div>
     <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="{{ STATIC_URL }}js/jquery-1.6.2.min.js"><\/script>')</script>
-
+    <script src="{{ STATIC_URL }}js/jquery.scrollTo-1.4.2-min.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery.localscroll-1.2.7-min.js"></script>
     {% block js %}{% endblock %}
 
     <!-- mathiasbynens.be/notes/async-analytics-snippet Change UA-XXXXX-X to be your site's ID -->
@@ -49,6 +58,15 @@
         g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
         s.parentNode.insertBefore(g,s)}(document,'script'));
     </script>
+    <script>
 
+$(function(){
+	$(document).scroll(function(){
+		$(document.body).toggleClass('stay', $(document).scrollTop()>200);
+	});
+});
+
+$('#navbar').localScroll({offset:-40, hash:true});
+</script>
 </body>
 </html>
